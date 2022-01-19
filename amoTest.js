@@ -1,7 +1,7 @@
 const tokenHeaders = new Headers();
 const formdata = new FormData();
 
-const userId = 'https://freestylehh4.amocrm.ru'
+const userId = 'https://freestylehh4.amocrm.ru' // логин пользователя в портале AmoCRM
 formdata.append("client_id", "fc366590-dff2-45b6-a71c-ebd6715d31d0");
 formdata.append("client_secret", "uBeUx8vp9oJhEpTVe8tPgrUPqWh6sYeQW92tRUOFf8Wopr3NBby7XRZIfQ6W9mkm");
 formdata.append("grant_type", "authorization_code");
@@ -16,7 +16,7 @@ const requestOptions = {
     redirect: 'follow'
 };
 
-function setReqForTasks(param) {
+function setReqForTasks(param) { // Формирование тела POST запроса для создания задач
     let ptrn = {
         "created_by": 7817095,
         "task_type_id": 1,
@@ -29,7 +29,7 @@ function setReqForTasks(param) {
 }
 
 
-async function getAuth() {
+async function getAuth() { //Получение Access_token и формирование параметров для последующих запросов к AmoCRM
     try {
         let response = await fetch(userId + "/oauth2/access_token", requestOptions);
         if (response.status>200) {
@@ -48,7 +48,7 @@ async function getAuth() {
 }
 
 
-async function getLeads() {
+async function getLeads() { // GET запрос для получения информации и контактах
     try {
         let response = await fetch(userId + "/api/v4/contacts?with=leads",
             {
@@ -70,7 +70,7 @@ async function getLeads() {
 }
 
 
-async function getTasks(raw) {
+async function getTasks(raw) {  // POST запрос для создания задач
     try {
         let response = await fetch(userId + "/api/v4/tasks",
             {
@@ -99,14 +99,14 @@ async function result() {
 
             const {_embedded} = res
             const {contacts} = _embedded
-            const leads_filtered = contacts.filter(el => el._embedded.leads.length === 0)
+            const leads_filtered = contacts.filter(el => el._embedded.leads.length === 0) // Находим все контакты у которых нет сделок
             if (leads_filtered.length===0) {
                 console.log("Контактов без сделок не обнаружено")
             }
             else {
-                leads_filtered.map(el =>  setReqForTasks(el.id))
-                let raw = JSON.stringify(arrayForTasksReq)
-                await getTasks(raw)
+                leads_filtered.map(el => setReqForTasks(el.id)) // Вычисляем все id контактов без сделок и формируем тело для POST запроса
+                let raw = JSON.stringify(arrayForTasksReq) // Преобразуем тело для POST запроса в JSON формат
+                await getTasks(raw) // Выполняем POST запрос для создания задач
                 console.log(raw)
             }
 
